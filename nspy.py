@@ -4,6 +4,8 @@ from pylab import *
 import matplotlib.patches as patches
 from scipy.optimize import minimize_scalar
 
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch
 
 #variables
 #incl = pi/8
@@ -68,6 +70,7 @@ def draw_longitude(ax,
                    rfac=1.0,
                    backside=False,
                    fmt={'color':'k','linestyle':'solid',},
+                   xyshift=(0.0,0.0)
                    ):
 
     xx = []
@@ -76,8 +79,8 @@ def draw_longitude(ax,
     for theta in np.linspace(start, stop, 200):
         if not(backside):
             if mu(phi,theta) >= muc:
-                xx.append(y(phi,theta)*rfac)
-                yy.append(z(phi,theta)*rfac)
+                xx.append(y(phi,theta)*rfac + xyshift[0])
+                yy.append(z(phi,theta)*rfac + xyshift[1])
             else:
                 lines, = ax.plot(xx, yy)
                 lines.set(**fmt)
@@ -85,8 +88,8 @@ def draw_longitude(ax,
                 yy = []
         else:
             if mu(phi,theta) <= muc:
-                xx.append(y(phi,theta)*rfac)
-                yy.append(z(phi,theta)*rfac)
+                xx.append(y(phi,theta)*rfac + xyshift[0])
+                yy.append(z(phi,theta)*rfac + xyshift[1])
             else:
                 lines, = ax.plot(xx, yy)
                 lines.set(**fmt)
@@ -106,6 +109,7 @@ def draw_latitude(ax,
                    rfac=1.0,
                    backside=False,
                    fmt={'color':'k','linestyle':'solid',},
+                   xyshift=(0.0,0.0)
                    ):
 
     xx = []
@@ -114,8 +118,8 @@ def draw_latitude(ax,
     for phi in np.linspace(start, stop, 200):
         if not(backside):
             if mu(phi,theta) >= muc:
-                xx.append(y(phi,theta)*rfac)
-                yy.append(z(phi,theta)*rfac)
+                xx.append(y(phi,theta)*rfac + xyshift[0])
+                yy.append(z(phi,theta)*rfac + xyshift[1])
             else:
                 lines, = ax.plot(xx, yy)
                 lines.set(**fmt)
@@ -123,8 +127,8 @@ def draw_latitude(ax,
                 yy = []
         else:
             if mu(phi,theta) <= muc:
-                xx.append(y(phi,theta)*rfac)
-                yy.append(z(phi,theta)*rfac)
+                xx.append(y(phi,theta)*rfac + xyshift[0])
+                yy.append(z(phi,theta)*rfac + xyshift[1])
             else:
                 lines, = ax.plot(xx, yy)
                 lines.set(**fmt)
@@ -273,6 +277,262 @@ def draw_spot(ax, sphi, stheta, rho,
                       **fmt))
 
     return ax
+
+
+def draw_wave(ax,
+              phi_start = 0.0,
+              phi_stop = 2*pi,
+              Nphi = 50,
+              r_start = 1.2,
+              r_stop = 8.0,
+              theta = pi/2,
+              fmt={'color':'k','linestyle':'solid', 'alpha':0.1}
+              ):
+
+
+    for phi in np.linspace(phi_start, phi_stop, Nphi):
+        phi += 0.02
+        xx = []
+        yy = []
+        for rfac in np.linspace(r_start, r_stop, 200):
+            thetaI = theta + 0.03*sin(8.0*rfac)
+            phiI = phi #+ 0.05*sin(8.0*rfac)
+            xx.append(y(phiI,thetaI)*rfac)
+            yy.append(z(phiI,thetaI)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+
+    for rfac in np.linspace(r_start, r_stop, 100):
+        thetaI = theta + 0.03*sin(8.0*rfac)
+        xx = []
+        yy = []
+        for phi in np.linspace(phi_start, phi_stop, 200):
+            phi += 0.02
+            phiI = phi #+ 0.05*sin(8.0*rfac)
+            xx.append(y(phiI,thetaI)*rfac)
+            yy.append(z(phiI,thetaI)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+
+    return ax
+
+
+def draw_phi(ax, phi1, phi2, theta, r1, r2, fmt, fmtb):
+
+    #front
+    xx = []
+    yy = []
+    for phi in np.linspace(phi1, phi2, 100):
+        xx.append(y(phi,theta)*r1)
+        yy.append(z(phi,theta)*r1)
+    ax.plot(xx, yy, **fmt)
+
+    #back
+    xxB = []
+    yyB = []
+    for phi in np.linspace(phi1, phi2, 100):
+        xxB.append(y(phi,theta)*r2)
+        yyB.append(z(phi,theta)*r2)
+    ax.plot(xxB, yyB, **fmtb)
+
+    return ax, xx, yy
+
+def draw_theta(ax, the1, the2, phi, r1, r2, fmt, fmtb):
+
+    #front
+    xx = []
+    yy = []
+    for theta in np.linspace(the1, the2, 100):
+        xx.append(y(phi,theta)*r1)
+        yy.append(z(phi,theta)*r1)
+    ax.plot(xx, yy, **fmt)
+
+    x1 = xx[1]
+    y1 = yy[1]
+    x2 = xx[-1]
+    y2 = yy[-1]
+
+    #back
+    xxB = []
+    yyB = []
+    for theta in np.linspace(the1, the2, 100):
+        xxB.append(y(phi,theta)*r2)
+        yyB.append(z(phi,theta)*r2)
+    ax.plot(xxB, yyB, **fmtb)
+
+    x3 = xxB[1]
+    y3 = yyB[1]
+    x4 = xxB[-1]
+    y4 = yyB[-1]
+
+    #connecting lines
+    ax.plot([x1, x3], [y1, y3], **fmtb)
+    ax.plot([x2, x4], [y2, y4], **fmtb)
+
+    return ax, xx, yy
+
+def draw_geo(ax, phi1, phi2, the1, the2, r1, r2, fmt, fmtb, plot=True):
+
+    #front
+    xx = []
+    yy = []
+    for (phi, theta) in zip(np.linspace(phi1, phi2, 100), np.linspace(the1, the2, 100)):
+        xx.append(y(phi,theta)*r1)
+        yy.append(z(phi,theta)*r1)
+        
+    if plot:
+        ax.plot(xx, yy, **fmt)
+
+    #back
+    xxB = []
+    yyB = []
+    for (phi, theta) in zip(np.linspace(phi1, phi2, 100), np.linspace(the1, the2, 100)):
+        xxB.append(y(phi,theta)*r2)
+        yyB.append(z(phi,theta)*r2)
+
+    if plot:
+        ax.plot(xxB, yyB, **fmtb)
+
+    return ax, xx, yy
+
+
+
+def clip_xy(xx, yy, ylim):
+    
+    yc = np.empty_like(yy)
+    for j, y in enumerate(yy):
+        #if y > ylim:
+        #    yc[j] = ylim
+        #else:
+        #    yc[j] = yy[j]
+
+        if y < ylim:
+            yc[j] = ylim
+        else:
+            yc[j] = yy[j]
+
+    return xx, yc
+
+
+def draw_letters(ax,
+              phi=0.0,
+              theta=pi/2,
+              rs=1.2,
+              paths=[ [(0,0), (0,1),(1,1),(1,0),(0,0)] ],
+              fmt ={'color':'k','linestyle':'solid', 'alpha':0.9},
+              fmtb={'color':'k','linestyle':'solid', 'alpha':0.1},
+              fmtf={'facecolor':'blue','alpha':0.9},
+              cmap=cm.get_cmap('inferno'),
+              skips=[]
+              ):
+
+    #dphi = 0.12
+    #dthe = 0.30
+    #dr   = 0.05
+
+    #playing around
+    dphi = 0.16
+    dthe = 0.30
+    dr   = 0.05
+
+    phi1 = phi - dphi
+    phi2 = phi + dphi
+
+    the1 = theta - dthe
+    the2 = theta + dthe
+
+    rs1 = rs - dr
+    rs2 = rs + dr
+
+    #xx = np.array([])
+    #yy = np.array([])
+    polys = []
+
+
+    ##################################################
+    #clipping edge for color shading
+    thetaI = np.pi/2
+    xx_edge = []
+    yy_edge = []
+    rfac = 2.0
+    for phi in np.linspace(0.0, 2*np.pi, 200):
+        phi += 0.02
+        phiI = phi 
+        xx_edge.append(y(phiI,thetaI)*rfac)
+        yy_edge.append(z(phiI,thetaI)*rfac)
+    ##################################################
+
+   
+    jj = 0
+    for path in paths:
+        xx = np.array([])
+        yy = np.array([])
+
+        for ii in range(len(path)-1):
+            phia = phi1 + (1.0-path[ii][0]  )*2.0*dphi
+            thea = the1 + (1.0-path[ii][1]  )*2.0*dthe
+            phib = phi1 + (1.0-path[ii+1][0])*2.0*dphi
+            theb = the1 + (1.0-path[ii+1][1])*2.0*dthe
+
+            xxt = np.array([])
+            yyt = np.array([])
+
+            if phia == phib:
+                ax, xxt, yyt = draw_theta(ax, thea, theb, phia, rs1, rs2, fmt, fmtb)
+            elif thea == theb:
+                ax, xxt, yyt = draw_phi(ax, phia, phib, thea, rs1, rs2, fmt, fmtb)
+            else:
+                if ii in skips:
+                    ax, xxt, yyt = draw_geo(ax, phia, phib, thea, theb, rs1, rs2, fmt, fmtb, plot=False)
+                else:
+                    ax, xxt, yyt = draw_geo(ax, phia, phib, thea, theb, rs1, rs2, fmt, fmtb, plot=True)
+
+            xx = np.append(xx, xxt)
+            yy = np.append(yy, yyt)
+
+        top = max(yy)
+        bot = min(yy)
+
+        #for kk, ylim in enumerate(np.linspace(0.5, 1.8, 10)): #dark bottom - light top
+        #for kk, ylim in enumerate(np.linspace(1.5, 0.5, 10)): 
+        for kk, ylim in enumerate(np.linspace(top, bot, 20)): 
+            #fmtf['facecolor'] = cmap(1.0 - kk / 19.0)
+            fmtf['facecolor'] = cmap( kk / 19.0)
+
+            xxc,yyc = clip_xy(xx,yy, ylim)
+            polys.append( Polygon(zip(xxc, yyc), closed=True, **fmtf) )
+
+
+
+    #p = ax.add_patch(polys[0])
+    #p = polys[0]
+    for poly in polys:
+        p = ax.add_patch(poly)
+    
+
+    #clipping edge for color shading
+    thetaI = np.pi/2
+    xx_edge = []
+    yy_edge = []
+    rfac = 2.0
+    for phi in np.linspace(0.0, 2*np.pi, 200):
+        phi += 0.02
+        phiI = phi 
+        xx_edge.append(y(phiI,thetaI)*rfac)
+        yy_edge.append(z(phiI,thetaI)*rfac)
+    #edge_path =  PathPatch(  Path( zip(xx_edge, yy_edge) ) ) #, facecolor='none')
+
+    #ax.add_patch( Polygon( zip(xx_edge, yy_edge), closed=True, facecolor='red') )
+
+
+    #p.set_clip_on(True)
+    #p.set_clip_path( edge_path )
+    #polys[0].set_clip_path( edge_path )
+
+
+
+    return ax
+
 
 
 
