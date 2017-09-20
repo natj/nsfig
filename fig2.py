@@ -28,8 +28,8 @@ ax.set_aspect('equal')
 
 #image dimensions
 #mlim= 1.3
-xmin = -3.6
-xmax =  3.6
+xmin = -2.6
+xmax =  2.6
 ymin = -1.8
 ymax =  2.2
 
@@ -43,8 +43,7 @@ ax.set_ylim(ymin, ymax)
 
 #variables
 nspy.incl = pi/3.0 #default just touch E bottom
-#nspy.incl = pi/2.5
-#nspy.incl = pi/2.6
+#nspy.incl = pi/2.9
 nspy.req = 1
 nspy.u = 0.01
 nspy.rg = nspy.u * nspy.req
@@ -116,19 +115,19 @@ for sweeps in np.linspace(0.0, pi, Nlines):
 #rho = 0.2
 #ax = nspy.draw_spot(ax, spot_phi, spot_theta, rho)
 
-cmap = cm.get_cmap('inferno')
+#cmap = cm.get_cmap('inferno')
 #cmap = cm.get_cmap('plasma')
 
 #spot_theta=pi/3.0
-spot_theta=0.0
-spot_phi=0.4
-fmtS={'facecolor':'red', 'alpha':0.4,}
-Ns = 10
+#spot_theta=0.0
+#spot_phi=0.4
+#fmtS={'facecolor':'red', 'alpha':0.4,}
+#Ns = 10
 
-for i, rho in enumerate( np.linspace(1.8, 0.3, Ns) ):
-    fmtS['facecolor'] = cmap(i / float(Ns-1) )
+#for i, rho in enumerate( np.linspace(1.8, 0.3, Ns) ):
+#    fmtS['facecolor'] = cmap(i / float(Ns-1) )
 
-    ax = nspy.draw_spot(ax, spot_phi, spot_theta, rho, fmt=fmtS)
+#    ax = nspy.draw_spot(ax, spot_phi, spot_theta, rho, fmt=fmtS)
 
 
 #spot_theta=pi
@@ -179,14 +178,14 @@ wave_stop = 2.0*pi
 #wave_stop = -pi/3
 
 
-#ax = nspy.draw_wave(ax,
-#                    phi_start= wave_start,
-#                    phi_stop = wave_stop,
-#                    Nphi = 50,
-#                    r_start = 1.0,
-#                    r_stop = 3.5,
-#                    theta = pi/2
-#                    )
+ax = nspy.draw_wave(ax,
+                    phi_start= wave_start,
+                    phi_stop = wave_stop,
+                    Nphi = 50,
+                    r_start = 1.0,
+                    r_stop = 8.0,
+                    theta = pi/2
+                    )
 
 #ax = nspy.draw_wave(ax,
 #                    phi_start= -pi/2 -0.6 + 0.4 -pi,
@@ -279,7 +278,7 @@ path_G=[[#(0.4, 1.0), (0.6, 1.0),
 
 fmt ={'color':'black','linestyle':'solid', 'alpha':1.0, 'linewidth':2.0}
 fmtb={'color':'black','linestyle':'solid', 'alpha':0.9, 'linewidth':2.0}
-fmtf={'facecolor':'blue', 'alpha':0.10, 'edgecolor':None}
+fmtf={'facecolor':'blue', 'alpha':0.90}
 
 
 #logo_start = -2.6
@@ -293,40 +292,58 @@ rdist = 2.6
 
 #ax = nspy.draw_letters(ax, phi=logo_start -0.30*0, theta=1.6, rs=rdist, fmt=fmt)
 #cmap = cm.get_cmap('viridis')
-cmap = cm.get_cmap('plasma')
+#cmap = cm.get_cmap('plasma')
+#cmap = cm.get_cmap('magma')
+#cmap = cm.get_cmap('spectral')
 #cmap = cm.get_cmap('Reds')
+#cmap = cm.get_cmap('YlGnBu')
+#cmap = cm.get_cmap('Reds')
+
 #cmap = pal.wesanderson.Zissou_5.mpl_colormap
 #cmap = pal.wesanderson.Aquatic1_5.mpl_colormap
+#cmap = pal.cmocean.diverging.Balance_3.mpl_colormap
+#cmap = pal.cmocean.diverging.Curl_5.mpl_colormap
+#cmap = pal.cmocean.diverging.Delta_5.mpl_colormap
+#cmap = pal.cmocean.sequential.Dense_20.mpl_colormap
+#cmap = pal.cmocean.sequential.Ice_20.mpl_colormap
+cmap = pal.cmocean.sequential.Matter_20.mpl_colormap #best so far
+#cmap = pal.cmocean.sequential.Solar_20.mpl_colormap
+#cmap = pal.cmocean.sequential.Thermal_20.mpl_colormap #second best
 
 
-
+nspy.req = 1
+nspy.u = 0.0
+nspy.rg = nspy.u * nspy.req
+nspy.muc = -nspy.rg / (nspy.req - nspy.rg)
+nspy.o21 = 0.80
 
 
 letters = [path_G, path_Rb, path_E, path_Ab, path_T]
-for i, letter in enumerate(letters):
-    
-    if i == 1:
-        skips = [1,6]
-    elif i == 3:
-        skips = [3,8]
-
-    else:
-        skips = []
-
-    #fmtf['facecolor'] = cmap(1.0/5.0 +  i/5.0)
-
-    #ax = nspy.draw_letters(ax, phi=logo_start -0.30*i, theta=1.6, rs=rdist, paths=letter, fmt=fmt,  fmtb=fmtb, fmtf=fmtf, cmap=cmap)
-    ax = nspy.draw_letters(ax, 
-                           phi=logo_start -0.40*i, 
-                           #phi=logo_start -0.52*i, 
-                           theta=1.65, 
-                           rs=rdist, 
-                           paths=letter, 
-                           fmt=fmt,  
-                           fmtb=fmtb, 
-                           fmtf=fmtf, 
-                           cmap=cmap, skips=skips
-                           )
+#for i, letter in enumerate(letters):
+#    
+#    if i == 1:
+#        skips = [1,6]
+#    elif i == 3:
+#        skips = [3,8]
+#
+#    else:
+#        skips = []
+#
+#    #fmtf['facecolor'] = cmap(1.0/5.0 +  i/5.0)
+#
+#    #ax = nspy.draw_letters(ax, phi=logo_start -0.30*i, theta=1.6, rs=rdist, paths=letter, fmt=fmt,  fmtb=fmtb, fmtf=fmtf, cmap=cmap)
+#    ax = nspy.draw_letters(ax, 
+#                           phi=logo_start -0.40*i, 
+#                           #phi=logo_start -0.52*i, 
+#                           #theta=1.65, 
+#                           theta=1.95, 
+#                           rs=rdist, 
+#                           paths=letter, 
+#                           fmt=fmt,  
+#                           fmtb=fmtb, 
+#                           fmtf=fmtf, 
+#                           cmap=cmap, skips=skips
+#                           )
     
 
 #ax = nspy.draw_letters(ax, phi=logo_start -0.30*0, theta=1.6, rs=rdist, paths=path_G, fmt=fmt,  fmtb=fmtb, fmtf=fmtf)
@@ -337,7 +354,28 @@ for i, letter in enumerate(letters):
 
 
 
+nspy.req = 1
+nspy.u = 0.05
+nspy.rg = nspy.u * nspy.req
+nspy.muc = -nspy.rg / (nspy.req - nspy.rg)
+nspy.o21 = 0.70
 
+
+
+
+cmap = cm.get_cmap('inferno')
+#cmap = cm.get_cmap('plasma')
+
+#spot_theta=pi/3.0
+spot_theta=0.0
+spot_phi=0.4
+fmtS={'facecolor':'red', 'alpha':0.4,}
+Ns = 10
+
+for i, rho in enumerate( np.linspace(1.8, 0.3, Ns) ):
+    fmtS['facecolor'] = cmap(i / float(Ns-1) )
+
+    ax = nspy.draw_spot(ax, spot_phi, spot_theta, rho, fmt=fmtS)
 
 
 savefig('fig2.png', bbox_inches='tight')

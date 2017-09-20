@@ -302,7 +302,7 @@ def draw_wave(ax,
         ax.plot(xx,yy,**fmt)
 
 
-    for rfac in np.linspace(r_start, r_stop, 100):
+    for rfac in np.linspace(r_start, r_stop, 200):
         thetaI = theta + 0.03*sin(8.0*rfac)
         xx = []
         yy = []
@@ -317,6 +317,110 @@ def draw_wave(ax,
     return ax
 
 
+def draw_disk(ax,
+              phi_start = 0.0,
+              phi_stop = 2*pi,
+              Nphi = 50,
+              r_start = 1.2,
+              r_stop = 8.0,
+              theta = pi/2,
+              fmt={'color':'k','linestyle':'solid', 'alpha':0.5}
+              ):
+
+
+    for phi in np.linspace(phi_start, phi_stop, Nphi):
+        phi += 0.02
+        xx = []
+        yy = []
+        for rfac in np.linspace(r_start, r_stop, 200):
+            thetaI = theta #+ 0.03*sin(8.0*rfac)
+            phiI = phi #+ 0.05*sin(8.0*rfac)
+
+            xx.append(y(phiI,thetaI)*rfac)
+            yy.append(z(phiI,thetaI)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+
+    for rfac in np.linspace(r_start, r_stop, 5):
+        thetaI = theta #+ 0.03*sin(8.0*rfac)
+        xx = []
+        yy = []
+        for phi in np.linspace(phi_start, phi_stop, 200):
+            phi += 0.02
+            phiI = phi #+ 0.05*sin(8.0*rfac)
+            xx.append(y(phiI,thetaI)*rfac)
+            yy.append(z(phiI,thetaI)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+    return ax
+
+
+def draw_flow_line(ax,
+              r_start = 1.2,
+              r_stop = 8.0,
+              phi = pi/2,
+              theta = pi/3.5,
+              fmt={'color':'r','linestyle':'solid', 'alpha':0.2}
+              ):
+
+    #disk plane
+    theta_ref = pi/2.0
+
+    xx = []
+    yy = []
+
+    Nr = 20
+    transf = np.linspace(0.0, 1.0, Nr)
+    for i, rfac in enumerate(np.linspace(r_start, r_stop, Nr)):
+        phiI = phi
+        thetaI = (1.0 - transf[i])*theta + transf[i]*theta_ref
+
+        xx.append(y(phiI,thetaI)*rfac)
+        yy.append(z(phiI,thetaI)*rfac)
+
+    ax.plot(xx,yy,**fmt)
+
+    return ax
+
+
+def randab(a,b):
+    return a + (b-a)*np.random.rand()
+
+
+def draw_turbulent_flow(ax,
+              r_start = 1.2,
+              r_stop = 8.0,
+              phi_start = 0.0,
+              phi_stop  = 2.0*pi,
+              fmt={'color':'darkred','linestyle':'solid', 'alpha':0.15, 'linewidth':1.0}
+              ):
+
+    #Nlines = 500
+    #for i in range(Nlines):
+    #    theta = randab(0.0, pi)
+    #    #theta = randab(0.0, pi/2.0)
+    #    phi   = randab(phi_start, phi_stop)
+    #    draw_flow_line(ax, r1, r2, phi, theta, fmt)
+
+    r1 = r_start
+    r2 = r_stop #+ randab(0.0, 0.5)
+
+    phis = np.linspace(phi_start, phi_stop, 22)
+    dphi = np.diff(phis)[0]/22.0
+    dp = 0.0
+
+    for i, theta in enumerate(np.linspace(0.0, pi, 22)):
+        for phi in phis:
+            if phi+dp < phi_stop:
+                draw_flow_line(ax, r1, r2, phi+dp, theta, fmt)
+        dp += dphi
+
+
+    return ax 
+
+
+yoff = 1.0
+
 def draw_phi(ax, phi1, phi2, theta, r1, r2, fmt, fmtb):
 
     #front
@@ -324,7 +428,7 @@ def draw_phi(ax, phi1, phi2, theta, r1, r2, fmt, fmtb):
     yy = []
     for phi in np.linspace(phi1, phi2, 100):
         xx.append(y(phi,theta)*r1)
-        yy.append(z(phi,theta)*r1)
+        yy.append(z(phi,theta)*r1 + yoff )
     ax.plot(xx, yy, **fmt)
 
     #back
@@ -332,7 +436,7 @@ def draw_phi(ax, phi1, phi2, theta, r1, r2, fmt, fmtb):
     yyB = []
     for phi in np.linspace(phi1, phi2, 100):
         xxB.append(y(phi,theta)*r2)
-        yyB.append(z(phi,theta)*r2)
+        yyB.append(z(phi,theta)*r2 +yoff )
     ax.plot(xxB, yyB, **fmtb)
 
     return ax, xx, yy
@@ -344,7 +448,7 @@ def draw_theta(ax, the1, the2, phi, r1, r2, fmt, fmtb):
     yy = []
     for theta in np.linspace(the1, the2, 100):
         xx.append(y(phi,theta)*r1)
-        yy.append(z(phi,theta)*r1)
+        yy.append(z(phi,theta)*r1 + yoff )
     ax.plot(xx, yy, **fmt)
 
     x1 = xx[1]
@@ -357,7 +461,7 @@ def draw_theta(ax, the1, the2, phi, r1, r2, fmt, fmtb):
     yyB = []
     for theta in np.linspace(the1, the2, 100):
         xxB.append(y(phi,theta)*r2)
-        yyB.append(z(phi,theta)*r2)
+        yyB.append(z(phi,theta)*r2 +yoff )
     ax.plot(xxB, yyB, **fmtb)
 
     x3 = xxB[1]
@@ -378,7 +482,7 @@ def draw_geo(ax, phi1, phi2, the1, the2, r1, r2, fmt, fmtb, plot=True):
     yy = []
     for (phi, theta) in zip(np.linspace(phi1, phi2, 100), np.linspace(the1, the2, 100)):
         xx.append(y(phi,theta)*r1)
-        yy.append(z(phi,theta)*r1)
+        yy.append(z(phi,theta)*r1 + yoff)
         
     if plot:
         ax.plot(xx, yy, **fmt)
@@ -388,7 +492,7 @@ def draw_geo(ax, phi1, phi2, the1, the2, r1, r2, fmt, fmtb, plot=True):
     yyB = []
     for (phi, theta) in zip(np.linspace(phi1, phi2, 100), np.linspace(the1, the2, 100)):
         xxB.append(y(phi,theta)*r2)
-        yyB.append(z(phi,theta)*r2)
+        yyB.append(z(phi,theta)*r2 +yoff )
 
     if plot:
         ax.plot(xxB, yyB, **fmtb)
@@ -399,19 +503,21 @@ def draw_geo(ax, phi1, phi2, the1, the2, r1, r2, fmt, fmtb, plot=True):
 
 def clip_xy(xx, yy, ylim):
     
-    yc = np.empty_like(yy)
+    #yc = np.empty_like(yy)
+    yc = np.array([])
+    xc = np.array([])
+
     for j, y in enumerate(yy):
         #if y > ylim:
         #    yc[j] = ylim
         #else:
         #    yc[j] = yy[j]
 
-        if y < ylim:
-            yc[j] = ylim
-        else:
-            yc[j] = yy[j]
+        if y > ylim:
+            yc = np.append(yc, yy[j])
+            xc = np.append(xc, xx[j])
 
-    return xx, yc
+    return xc, yc
 
 
 def draw_letters(ax,
@@ -432,7 +538,8 @@ def draw_letters(ax,
 
     #playing around
     dphi = 0.16
-    dthe = 0.30
+    #dthe = 0.29
+    dthe = 0.29
     dr   = 0.05
 
     phi1 = phi - dphi
@@ -493,14 +600,12 @@ def draw_letters(ax,
         top = max(yy)
         bot = min(yy)
 
-        #for kk, ylim in enumerate(np.linspace(0.5, 1.8, 10)): #dark bottom - light top
-        #for kk, ylim in enumerate(np.linspace(1.5, 0.5, 10)): 
-        for kk, ylim in enumerate(np.linspace(top, bot, 20)): 
-            #fmtf['facecolor'] = cmap(1.0 - kk / 19.0)
+        for kk, ylim in enumerate(np.linspace(1.01*bot, 0.99*top, 20)): 
+            #fmtf['facecolor'] = cmap( 1.0 - kk / 19.0)
             fmtf['facecolor'] = cmap( kk / 19.0)
 
             xxc,yyc = clip_xy(xx,yy, ylim)
-            polys.append( Polygon(zip(xxc, yyc), closed=True, **fmtf) )
+            polys.append( Polygon(zip(xxc, yyc), closed=True, edgecolor='None', **fmtf) )
 
 
 
