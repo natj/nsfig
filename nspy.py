@@ -302,7 +302,7 @@ def draw_wave(ax,
         ax.plot(xx,yy,**fmt)
 
 
-    for rfac in np.linspace(r_start, r_stop, 200):
+    for rfac in np.linspace(r_start, r_stop, 400):
         thetaI = theta + 0.03*sin(8.0*rfac)
         xx = []
         yy = []
@@ -639,5 +639,31 @@ def draw_letters(ax,
     return ax
 
 
+def draw_dipole_field(
+        ax,
+        phi = pi/2.,
+        fmt={'color':'b','linestyle':'solid',},
+        plot=True,
+        ):
+
+    the1 =  pi/2.
+    the2 = -pi/2.
+
+    r1 = 1.5
+
+    #front
+    xx = []
+    yy = []
+    for theta in np.linspace(the1, the2, 100):
+        xx.append(y(phi,theta)*r1)
+        yy.append(z(phi,theta)*r1)
+
+
+    if plot:
+        ax.plot(xx, yy, **fmt)
+
+
+
+    return ax
 
 
