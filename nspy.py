@@ -639,31 +639,142 @@ def draw_letters(ax,
     return ax
 
 
-def draw_dipole_field(
+def draw_dipole_field_line(
         ax,
+        L,
         phi = pi/2.,
+        tinc = 0.0,
+        rmin = 1.0,
         fmt={'color':'b','linestyle':'solid',},
         plot=True,
         ):
 
-    the1 =  pi/2.
-    the2 = -pi/2.
+    the1 =  0.0
+    the2 =  pi
 
-    r1 = 1.5
+    for (the1, the2) in zip([0.0, 0.0], [pi, -pi]):
 
-    #front
-    xx = []
-    yy = []
-    for theta in np.linspace(the1, the2, 100):
-        xx.append(y(phi,theta)*r1)
-        yy.append(z(phi,theta)*r1)
+        #front
+        xx = []
+        yy = []
+        for theta in np.linspace(the1, the2, 100):
+            r1 = L * np.sin(theta + tinc)**2.
+            if r1 > rmin:
+                xx.append(y(phi,theta)*r1)
+                yy.append(z(phi,theta)*r1)
 
-
-    if plot:
-        ax.plot(xx, yy, **fmt)
-
+        if plot:
+            ax.plot(xx, yy, **fmt)
 
 
     return ax
+
+
+def draw_open_field_line(
+        ax,
+        L,
+        RLC,
+        phi = pi/2.,
+        tinc = 0.0,
+        rmin = 1.0,
+        fmt={'color':'b','linestyle':'solid',},
+        plot=True,
+        ):
+
+    #the1 =  0.0
+    #the2 =  pi
+    up = True
+
+    magic_angle = np.deg2rad(90.0-35.3)
+    
+
+    ri = 0.1
+    #for (the1, the2) in zip([0.0, 0.0], [pi, -pi]):
+
+    for (the1, the2) in zip(
+            [0.0, 0.0],
+            [pi/2., -pi/2.]
+            ):
+
+        print(the1, " " , the2, " ")
+
+        #front
+        xx = []
+        yy = []
+        trans = 0.0
+        for theta in np.linspace(the1, the2, 100):
+            r1 = L * np.sin(theta + tinc)**2.
+
+            if up and (abs(theta) > magic_angle ):
+                trans = (abs(theta) - magic_angle)/(pi/2.0 - magic_angle)
+                trans = trans**3.0 #smoothen transition
+
+            if r1 > rmin:
+                xx1 = y(phi,theta)*r1
+                yy1 = z(phi,theta)*r1
+
+                xx2 = y(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + trans)
+                yy2 = z(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + trans)
+
+                xxi = (1.0-trans)*xx1 + trans*xx2
+                yyi = (1.0-trans)*yy1 + trans*yy2
+
+                xx.append(xxi)
+                yy.append(yyi)
+
+            print(theta, "vs ", magic_angle, " trans ", trans)
+
+
+        if plot:
+            ax.plot(xx, yy, **fmt)
+
+
+    print("bottom---------------------")
+
+    magic_angle = np.deg2rad(35.3)+pi/2.
+    for (the1, the2) in zip(
+            [pi,    -pi/2.],
+            [pi/2., -pi]
+            ):
+
+        print(the1, " " , the2, " ")
+
+        #front
+        xx = []
+        yy = []
+        trans = 0.0
+        for theta in np.linspace(the1, the2, 100):
+            r1 = L * np.sin(theta + tinc)**2.
+
+            if (abs(theta) < magic_angle):
+                trans = -(abs(theta) - magic_angle)/(magic_angle-pi/2.)
+                trans = trans**3.0 #smoothen transition
+            else:
+                trans = 0.0
+
+            if r1 > rmin:
+                xx1 = y(phi,theta)*r1
+                yy1 = z(phi,theta)*r1
+
+                xx2 = y(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + trans)
+                yy2 = z(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + trans)
+
+                xxi = (1.0-trans)*xx1 + trans*xx2
+                yyi = (1.0-trans)*yy1 + trans*yy2
+
+                xx.append(xxi)
+                yy.append(yyi)
+
+            print(theta, "vs ", magic_angle, " trans ", trans)
+
+
+        if plot:
+            ax.plot(xx, yy, **fmt)
+
+    return ax
+
+
+
+
 
 

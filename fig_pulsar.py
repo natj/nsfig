@@ -194,16 +194,27 @@ if True:
     fmtB={'color':'r','linestyle':'solid',}
 
     phiB = pi/2.
+    theinc = pi/8.0 #pulsar inclination
 
-    ax = nspy.draw_flow_line(ax,
-                             r_start=1.0,
-                             r_stop=RLC,
-                             phi = phiB,
-                             theta= pi/3.5,
-                             fmt=fmtB
-                             )
+    #ax = nspy.draw_flow_line(ax,
+    #                         r_start=1.0,
+    #                         r_stop=RLC + 0.5,
+    #                         phi = phiB,
+    #                         theta= 0.01,
+    #                         fmt=fmtB
+    #                         )
+
+    req1 = 1.5 #first field line (where it crosses equator)
+    req2 = RLC #last field line 
+    for r in np.linspace(req1, req2, 5):
+        ax = nspy.draw_dipole_field_line(ax,r,phi=phiB, tinc=theinc, fmt=fmtB)
 
 
+    #reconnecting field lines
+    req1 = RLC + 0.1 #first field line (where it crosses equator)
+    req2 = 8.0       #last field line 
+    for r in np.linspace(req1, req2, 1):
+        ax = nspy.draw_open_field_line(ax,r,RLC, phi=phiB, tinc=theinc, fmt=fmtB)
 
 
 savefig('fig_pulsar.png', bbox_inches='tight')
