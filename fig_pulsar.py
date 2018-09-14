@@ -13,26 +13,29 @@ import palettable as pal
 
 
 ## Plot
-fig = figure(figsize=(6,4), dpi=80)
-rc('font', family='serif')
-rc('xtick', labelsize='xx-small')
-rc('ytick', labelsize='xx-small')
+#fig = plt.figure(figsize=(3.54, 2.3)) #single column fig
+fig = plt.figure(figsize=(7.48, 3.5))  #two column figure
+
+plt.rc('font', family='serif')
+plt.rc('xtick', labelsize=7)
+plt.rc('ytick', labelsize=7)
+plt.rc('axes', labelsize=7)
 
 gs = GridSpec(1, 1)
 #gs.update(wspace = 0.34)
 #gs.update(hspace = 0.4)
 
 ax = subplot(gs[0,0])
-#ax.axis('off')
+ax.axis('off')
 ax.set_aspect('equal')
 
 #ax.set_title('Pulsar', size=18)
 
 #image dimensions
-xmin = -9.6
-xmax =  9.6
-ymin = -5.8
-ymax =  5.2
+xmin = -14.6
+xmax =  14.6
+ymin = -6.8
+ymax =  7.2
 
 xlen = xmax-xmin
 ylen = ymax-ymin
@@ -43,12 +46,12 @@ ax.set_ylim(ymin, ymax)
 
 
 #variables
-nspy.incl = pi/2.5 
+#nspy.incl = pi/2.1 
 nspy.req = 1
-nspy.u = 0.00
+nspy.u = 0.0
 nspy.rg = nspy.u * nspy.req
 nspy.muc = -nspy.rg / (nspy.req - nspy.rg)
-nspy.o21 = 0.10
+nspy.o21 = 0.20
 
 
 #coordinates of observer
@@ -58,8 +61,8 @@ nspy.o21 = 0.10
 
 
 #default front and back line styles
-fmt={'color':'k','linestyle':'solid',}
-fmtb = {'color':'k','linestyle':'dotted',}
+fmt={'color':'k','linestyle':'solid', 'lw': 0.8}
+fmtb = {'color':'k','linestyle':'dotted', 'lw': 0.8}
 #fmtb={'color':'k','linestyle':'solid',} #same linestyle for backside
 
 #borders
@@ -71,42 +74,58 @@ fmtO={'color':'red','linestyle':'solid',}
 # STAR
 
 if True:
-    Nlines = 5
-    for sweeps in np.linspace(0.0, 2.0*pi, Nlines):
-        ax=nspy.draw_longitude(ax, sweeps,  0.0, pi/2.0, fmt=fmt)
-        ax=nspy.draw_longitude(ax, sweeps,  pi/2.0, pi, fmt=fmt) #bottom
-    
-        ax=nspy.draw_longitude(ax, sweeps,  0.0, pi/2.0, fmt=fmtb, backside=True)
-        ax=nspy.draw_longitude(ax, sweeps,  pi/2.0, pi,  fmt=fmtb, backside=True) #bottom
-    
-    
-    for sweeps in np.linspace(0.0, pi, Nlines):
-        ax=nspy.draw_latitude(ax, sweeps, fmt=fmt)
-        ax=nspy.draw_latitude(ax, sweeps, backside=True, fmt=fmtb)
+    #Nlines = 10
+    #for sweeps in np.linspace(0.0, 2.0*pi, Nlines):
+    #    ax=nspy.draw_longitude(ax, sweeps,  0.0, pi/2.0, fmt=fmt)
+    #    ax=nspy.draw_longitude(ax, sweeps,  pi/2.0, pi, fmt=fmt) #bottom
+    #
+    #    ax=nspy.draw_longitude(ax, sweeps,  0.0, pi/2.0, fmt=fmtb, backside=True)
+    #    ax=nspy.draw_longitude(ax, sweeps,  pi/2.0, pi,  fmt=fmtb, backside=True) #bottom
+    #
+    #
+    #Nlines = 10
+    #for sweeps in np.linspace(0.0, pi, Nlines):
+    #    ax=nspy.draw_latitude(ax, sweeps, fmt=fmt)
+    #    ax=nspy.draw_latitude(ax, sweeps, backside=True, fmt=fmtb)
     
 
+
+    #coloring
+    if True:
+        cmap = cm.get_cmap('inferno')
+        #cmap = cm.get_cmap('plasma')
+        
+        #spot_theta=pi/3.0
+        spot_theta=0.0
+        spot_phi=0.4
+        fmtS={'facecolor':'red', 'alpha':0.4,}
+        Ns = 30
+        
+        for i, rho in enumerate( np.linspace(2.8, 0.3, Ns) ):
+            fmtS['facecolor'] = cmap(i / float(Ns-1) )
+            ax = nspy.draw_spot(ax, spot_phi, spot_theta, rho, fmt=fmtS)
 
 #-----------------------------------------------------
 # DISK
 
-if False:
+if True:
     # equatorial disk
-    slice_thick = 0.8
-    #slice_thick = 0.0
+    #slice_thick = 0.8
+    slice_thick = pi/2. - 0.4
     disk_start= 0.0    + slice_thick
     disk_stop = 2.0*pi - slice_thick
     
     
-    diskH=0.010
+    diskH=0.050
     
-    inner_disk = 4.0
-    outer_disk = 8.0
+    inner_disk = 10.0
+    outer_disk = 16.0
     
     
     ax = nspy.draw_disk(ax,
                         phi_start= disk_start,
                         phi_stop = disk_stop,
-                        Nphi = 400,
+                        Nphi = 200,
                         r_start = inner_disk,
                         r_stop = outer_disk,
                         theta = pi/2-diskH,
@@ -147,10 +166,10 @@ if False:
 # Light cylinder
 
 if True:
-    fmtLC={'color':'k','linestyle':'solid',}
+    fmtLC={'color':'k','linestyle':'dashed', 'lw': 1.5}
 
-    H   = 4.0 #cylinder height
-    RLC = 3.5 #location of light cylinder   
+    H   = 5.5 #cylinder height
+    RLC = 4.5 #location of light cylinder   
 
 
     #bottom
@@ -185,36 +204,97 @@ if True:
                             xyshift=(0.0, +H)
                             )
 
+    #sides
+    x1 = nspy.y(-pi/2., pi/2.)*RLC 
+    y1 = nspy.z(-pi/2., pi/2.)*RLC
+    ax.plot([x1, x1], [y1-H, y1+H], **fmtLC)
 
+    x2 = nspy.y(+pi/2., pi/2.)*RLC 
+    y2 = nspy.z(+pi/2., pi/2.)*RLC
+    ax.plot([x2, x2], [y2-H, y2+H], **fmtLC)
+
+
+#-----------------------------------------------------
+# Rotation arrow
+if True:
+    obs_phi=-pi/1.5
+
+    fmta= {'color':'black', 'linestyle':'solid', 'lw':1.5, 'head_width': 0.08, 'head_length': 0.16,}
+
+    #draw xyz axis
+    #ax = nspy.draw_axis(ax, obs_phi,      pi/2, rfac=1.4)
+    #ax = nspy.draw_axis(ax, obs_phi+pi/2, pi/2, rfac=1.4)
+    ax = nspy.draw_axis(ax, 0.0, 0.0 , startp=(0.0, -5.5), rfac=16.0, fmt=fmta)
+    
+    #rotation direction, i.e. curly arrow
+    phistart=-pi/2-0.8
+    phistop=pi/2+0.5
+    wsize=0.15
+    wheight=-8.0
+    
+    ax=nspy.draw_latitude(ax, wsize, fmt=fmt, start=phistart, stop=phistop, rfac=wheight)
+    yy1=nspy.y(phistop,wsize)*wheight
+    zz1=nspy.z(phistop,wsize)*wheight
+    
+    yy2 = -0.01
+    zz2 = 0.002
+    
+    ax.add_patch(patches.FancyArrow(
+                yy1, zz1,
+                yy2, zz2,
+                **fmta
+                ))
+    
 
 #-----------------------------------------------------
 # B field
 
 if True:
-    fmtB={'color':'r','linestyle':'solid',}
+    fmtB={'color':'k','linestyle':'solid', 'lw': 0.8}
 
     phiB = pi/2.
-    theinc = pi/8.0 #pulsar inclination
+    theinc = pi/7.0 #pulsar inclination
 
-    #ax = nspy.draw_flow_line(ax,
-    #                         r_start=1.0,
-    #                         r_stop=RLC + 0.5,
-    #                         phi = phiB,
-    #                         theta= 0.01,
-    #                         fmt=fmtB
-    #                         )
+    #closed field lines
 
     req1 = 1.5 #first field line (where it crosses equator)
-    req2 = RLC #last field line 
-    for r in np.linspace(req1, req2, 5):
+    req2 = 0.9*RLC #last field line 
+    for r in np.linspace(req1, req2, 3):
         ax = nspy.draw_dipole_field_line(ax,r,phi=phiB, tinc=theinc, fmt=fmtB)
 
+
+    # open field lines
+    req1 = 1.2*RLC
+    req2 = 5.0*RLC
+    #for r in np.linspace(req1, req2, 3):
+    for r in [1.8*RLC, 3.0*RLC, 30.0*RLC]:
+        ax = nspy.draw_open_field_line(
+                ax,
+                r,
+                RLC, 
+                phi=phiB, 
+                tinc=theinc, 
+                fmt=fmtB)
+
+
+    #separatrix field line
+    fmtRC={'color':'r','linestyle':'dashed', 'lw': 0.8}
+    ax = nspy.draw_dipole_field_line(ax, RLC,phi=phiB, tinc=theinc, fmt=fmtRC)
 
     #reconnecting field lines
     req1 = RLC + 0.1 #first field line (where it crosses equator)
     req2 = 8.0       #last field line 
     for r in np.linspace(req1, req2, 1):
-        ax = nspy.draw_open_field_line(ax,r,RLC, phi=phiB, tinc=theinc, fmt=fmtB)
+        ax = nspy.draw_reconnecting_field_line(
+                ax,
+                r,
+                RLC, 
+                phi=phiB, 
+                tinc=theinc, 
+                sheet_len = 2.2,
+                fmt=fmtRC, )
 
 
-savefig('fig_pulsar.png', bbox_inches='tight')
+plt.subplots_adjust(left=0.0, bottom=0.0, right=0.99, top=0.99, wspace=0.0, hspace=0.0)
+savefig('fig_pulsar.pdf')
+#savefig('fig_pulsar.png', bbox_inches='tight')

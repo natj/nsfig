@@ -7,9 +7,13 @@ from scipy.optimize import minimize_scalar
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
 
+from numba import jit
+from numba import float64
+
 #variables
 #incl = pi/8
-incl = pi/2.5
+#incl = pi/2.25
+incl = pi/2.3
 req = 1
 u = 0.0
 
@@ -17,47 +21,59 @@ rg = u*req
 muc = -rg/(req-rg)
 o21 = 0.3
 
+#@jit
+#def R(theta):
+#    return 1.0
 
-def R(theta):
-    return 1.0
-
+@jit(float64(float64))
 def R(theta):
     return 1.0*(1-o21*cos(theta)**2)
 
+@jit(float64(float64))
 def dR(theta):
     return 2.0*o21*sin(theta)*cos(theta)
 
+@jit(float64(float64))
 def fa(theta):
     return dR(theta)/R(theta)
 
+@jit(float64(float64))
 def cosg(theta):
     return (1/sqrt(1-u))/sqrt(1+fa(theta)**2)
 
+@jit(float64(float64))
 def sing(theta):
     return fa(theta)*cosg(theta)
 
+@jit(float64(float64, float64))
 def mu(phi, theta):
     return cos(incl)*cos(theta)+cos(phi)*sin(incl)*sin(theta)
 
+@jit(float64(float64, float64))
 def bimp(phi, theta):
     return sqrt(req*(req+rg+req*mu(phi,theta)-rg*mu(phi,theta))/(1+mu(phi,theta)))
 
+@jit(float64(float64, float64))
 def x(phi, theta):
     return bimp(phi,theta)*R(theta)*(cos(incl)*cos(theta)+cos(phi)*sin(incl)*sin(theta))
 
+@jit(float64(float64, float64))
 def y(phi, theta):
     return bimp(phi,theta)*R(theta)*(sin(theta)*sin(phi))
 
+@jit(float64(float64, float64))
 def z(phi, theta):
     return  bimp(phi,theta)*R(theta)*(cos(theta)*sin(incl)-cos(incl)*cos(phi)*sin(theta))
 
-
+@jit(float64(float64, float64, float64, float64, float64))
 def xfull(phi,theta, a,b,c):
     return bimp(phi, theta)*R(theta)* (cos(incl)*(a*cos(theta)-c*sin(theta)) + sin(incl)*(c*cos(theta)*cos(phi) + a*cos(phi)*sin(theta) - b*sin(phi)))
 
+@jit(float64(float64, float64, float64, float64, float64))
 def yfull(phi, theta, a,b,c):
     return bimp(phi, theta)*R(theta)* (b*cos(phi) + (c*cos(theta) + a*sin(theta))*sin(phi))
 
+@jit(float64(float64, float64, float64, float64, float64))
 def zfull(phi, theta, a,b,c):
     return bimp(phi, theta)*R(theta)* (sin(incl)*(a*cos(theta)-c*sin(theta)) + cos(incl)*(-cos(phi)*(c*cos(theta) + a*sin(theta)) + b*sin(phi)))
 
@@ -187,16 +203,13 @@ def draw_radial(ax, phi, theta,
 
 def draw_axis(ax, phi, theta,
               startp=(0.0, 0.0),
-              fmt= {'color':'k', 
-              'linestyle':'solid', 
-              'lw':1.5, 
-              'head_width': 0.04, 
-              'head_length': 0.08,},
+              fmt= {'color':'k', 'linestyle':'solid', 'lw':1.5, 'head_width': 0.04, 'head_length': 0.08,},
               rfac=1.0):
 
     ax.add_patch(patches.FancyArrow(
               startp[0],startp[1],
               y(phi, theta)*rfac, z(phi, theta)*rfac,
+              zorder=1,
               **fmt
               ))
 
@@ -271,9 +284,14 @@ def draw_spot(ax, sphi, stheta, rho,
         yy.append(z(phi, theta))
 
     #ax.plot(xx, yy, "b-")
-    ax.add_patch(Polygon(zip(xx,yy),
+
+    #hack to make zipped iterator to work with python3
+    xxyy = list(zip(xx,yy))
+    zipped_list = xxyy[:]
+
+    ax.add_patch(Polygon(zipped_list,
                       closed=True, 
-                      #facecolor='black',alpha=0.5))
+                      zorder=10,
                       **fmt))
 
     return ax
@@ -670,6 +688,78 @@ def draw_dipole_field_line(
     return ax
 
 
+def draw_reconnecting_field_line(
+        ax,
+        L,
+        RLC,
+        phi = pi/2.,
+        tinc = 0.0,
+        rmin = 1.0,
+        fmt={'color':'b','linestyle':'solid',},
+        plot=True,
+        sheet_len = 1.0,
+        ):
+
+    sheet_len -= 1.0 #correct length of reconnecting sheet
+
+
+    #this is the angle where dipole field is parallel to equator
+    magic_angle1 = np.deg2rad(90.0-35.3) #top part
+    magic_angle2 = np.deg2rad(35.3)+pi/2. #bottom part
+
+    for (the1, the2, dire) in zip(
+            [0.0,     0.0,  pi,    -pi/2.],
+            [pi/2., -pi/2., pi/2., -pi],
+            [+1,       +1,  -1,     -1]
+            ):
+
+        #front
+        xx = []
+        yy = []
+        trans = 0.0
+        for theta in np.linspace(the1, the2, 100):
+            r1 = L * np.sin(theta + tinc)**2.
+
+            #top lines
+            if (dire > 0):
+                trans = 0.0
+                if (abs(theta) > magic_angle1 ):
+                    trans = (abs(theta) - magic_angle1)/(pi/2.0 - magic_angle1)
+                    #trans = trans**3.0 #smoothen transition
+
+            #bottom lines
+            if (dire < 0):
+                trans = 1.0
+                if (abs(theta) < magic_angle2):
+                    trans = -(abs(theta) - magic_angle2)/(magic_angle2-pi/2.)
+                    #trans = trans**3.0 #smoothen transition
+                else:
+                    trans = 0.0
+
+
+            trans = trans**5.0 #sharper transition
+
+
+            if r1 > rmin:
+                xx1 = y(phi,theta)*r1
+                yy1 = z(phi,theta)*r1
+
+                xx2 = y(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + sheet_len*trans)
+                yy2 = z(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + sheet_len*trans)
+
+                xxi = (1.0-trans)*xx1 + trans*xx2
+                yyi = (1.0-trans)*yy1 + trans*yy2
+
+                xx.append(xxi)
+                yy.append(yyi)
+
+        if plot:
+            ax.plot(xx, yy, **fmt)
+
+    return ax
+
+
+
 def draw_open_field_line(
         ax,
         L,
@@ -681,22 +771,20 @@ def draw_open_field_line(
         plot=True,
         ):
 
-    #the1 =  0.0
-    #the2 =  pi
-    up = True
+    #this is the angle where dipole field is parallel to equator
+    magic_angle1 = np.deg2rad(90.0-35.3) #top part
+    magic_angle2 = np.deg2rad(35.3)+pi/2. #bottom part
 
-    magic_angle = np.deg2rad(90.0-35.3)
-    
-
-    ri = 0.1
-    #for (the1, the2) in zip([0.0, 0.0], [pi, -pi]):
-
-    for (the1, the2) in zip(
-            [0.0, 0.0],
-            [pi/2., -pi/2.]
+    #for (the1, the2, dire) in zip(
+    #        [0.0,     0.0,  pi,    -pi/2.],
+    #        [pi/2., -pi/2., pi/2., -pi],
+    #        [+1,       +1,  -1,     -1]
+    #        ):
+    for (the1, the2, dire) in zip(
+            [0.0-tinc, -pi/2.      ],
+            [pi/2.   , -pi-tinc    ],
+            [+1      , -1          ]
             ):
-
-        print(the1, " " , the2, " ")
 
         #front
         xx = []
@@ -705,75 +793,47 @@ def draw_open_field_line(
         for theta in np.linspace(the1, the2, 100):
             r1 = L * np.sin(theta + tinc)**2.
 
-            if up and (abs(theta) > magic_angle ):
-                trans = (abs(theta) - magic_angle)/(pi/2.0 - magic_angle)
-                trans = trans**3.0 #smoothen transition
-
-            if r1 > rmin:
-                xx1 = y(phi,theta)*r1
-                yy1 = z(phi,theta)*r1
-
-                xx2 = y(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + trans)
-                yy2 = z(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + trans)
-
-                xxi = (1.0-trans)*xx1 + trans*xx2
-                yyi = (1.0-trans)*yy1 + trans*yy2
-
-                xx.append(xxi)
-                yy.append(yyi)
-
-            print(theta, "vs ", magic_angle, " trans ", trans)
-
-
-        if plot:
-            ax.plot(xx, yy, **fmt)
-
-
-    print("bottom---------------------")
-
-    magic_angle = np.deg2rad(35.3)+pi/2.
-    for (the1, the2) in zip(
-            [pi,    -pi/2.],
-            [pi/2., -pi]
-            ):
-
-        print(the1, " " , the2, " ")
-
-        #front
-        xx = []
-        yy = []
-        trans = 0.0
-        for theta in np.linspace(the1, the2, 100):
-            r1 = L * np.sin(theta + tinc)**2.
-
-            if (abs(theta) < magic_angle):
-                trans = -(abs(theta) - magic_angle)/(magic_angle-pi/2.)
-                trans = trans**3.0 #smoothen transition
-            else:
+            #top lines
+            if (dire > 0):
                 trans = 0.0
+                if (abs(theta+tinc) > magic_angle1 ):
+                    trans = (abs(theta+tinc) - magic_angle1)/(pi/2.0 - magic_angle1)
+
+            #bottom lines
+            if (dire < 0):
+                trans = 1.0
+                if (abs(theta+tinc) < magic_angle2):
+                    trans = -(abs(theta+tinc) - magic_angle2)/(magic_angle2-pi/2.)
+                else:
+                    trans = 0.0
+
+            #trans = np.sqrt(trans) #sharper transition
+            trans = trans**2.
 
             if r1 > rmin:
                 xx1 = y(phi,theta)*r1
                 yy1 = z(phi,theta)*r1
 
-                xx2 = y(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + trans)
-                yy2 = z(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + trans)
+                #if trans > 0.0:
+                #    trans = 1.0
+
+                if (dire > 0):
+                    xx2 = y(phi, np.sign(theta)*magic_angle1)*L*(1.0 + 2.*trans)
+                    yy2 = z(phi, np.sign(theta)*magic_angle1)*L*(1.0 + 2.*trans)
+                if (dire < 0):
+                    xx2 = y(phi, np.sign(theta)*magic_angle2)*L*(1.0 + 2.*trans)
+                    yy2 = z(phi, np.sign(theta)*magic_angle2)*L*(1.0 + 2.*trans)
 
                 xxi = (1.0-trans)*xx1 + trans*xx2
                 yyi = (1.0-trans)*yy1 + trans*yy2
 
                 xx.append(xxi)
                 yy.append(yyi)
-
-            print(theta, "vs ", magic_angle, " trans ", trans)
-
 
         if plot:
             ax.plot(xx, yy, **fmt)
 
     return ax
-
-
 
 
 

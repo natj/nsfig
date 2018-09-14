@@ -377,10 +377,7 @@ Ns = 10
 
 for i, rho in enumerate( np.linspace(1.8, 0.3, Ns) ):
     fmtS['facecolor'] = cmap(i / float(Ns-1) )
-
     ax = nspy.draw_spot(ax, spot_phi, spot_theta, rho, fmt=fmtS)
-
-
 
 
 #extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
