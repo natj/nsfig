@@ -13,7 +13,7 @@ from numba import float64
 #variables
 #incl = pi/8
 #incl = pi/2.25
-incl = pi/2.3
+incl = pi/2.6
 req = 1
 u = 0.0
 
@@ -371,6 +371,41 @@ def draw_disk(ax,
         ax.plot(xx,yy,**fmt)
 
     return ax
+
+
+def draw_disk_interior(
+              ax,
+              phi_start = 0.0,
+              phi_stop = 2*pi,
+              Nphi = 10,
+              Nthe = 10,
+              r_start = 1.2,
+              theta_up = pi/2-0.1,
+              theta_dw = pi/2+0.1,
+              fmt={'color':'k','linestyle':'solid', 'alpha':0.5}
+              ):
+
+    rfac = r_start
+
+    
+    for phi in np.linspace(phi_start, phi_stop, Nphi):
+        xx = []
+        yy = []
+        for the in np.linspace(theta_dw, theta_up, 20):
+            xx.append(y(phi,the)*rfac)
+            yy.append(z(phi,the)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+    for the in np.linspace(theta_dw, theta_up, Nthe):
+        xx = []
+        yy = []
+        for phi in np.linspace(phi_start, phi_stop, 100):
+            xx.append(y(phi,the)*rfac)
+            yy.append(z(phi,the)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+    return ax
+
 
 
 def draw_flow_line(ax,
@@ -735,17 +770,17 @@ def draw_reconnecting_field_line(
                     #trans = trans**3.0 #smoothen transition
                 else:
                     trans = 0.0
-
-
-            trans = trans**5.0 #sharper transition
+            trans = trans**3.0 #sharper transition
 
 
             if r1 > rmin:
                 xx1 = y(phi,theta)*r1
                 yy1 = z(phi,theta)*r1
 
-                xx2 = y(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + sheet_len*trans)
-                yy2 = z(phi, np.sign(theta)*pi/2.)*RLC*(1.0 + sheet_len*trans)
+                #ref_theta = np.sign(theta)*pi/2. #equator
+                ref_theta = np.sign(theta)*pi/2. - tinc #oblique
+                xx2 = y(phi, ref_theta)*RLC*(1.0 + sheet_len*trans)
+                yy2 = z(phi, ref_theta)*RLC*(1.0 + sheet_len*trans)
 
                 xxi = (1.0-trans)*xx1 + trans*xx2
                 yyi = (1.0-trans)*yy1 + trans*yy2
@@ -808,7 +843,7 @@ def draw_open_field_line(
                     trans = 0.0
 
             #trans = np.sqrt(trans) #sharper transition
-            trans = trans**2.
+            trans = trans**1.
 
             if r1 > rmin:
                 xx1 = y(phi,theta)*r1

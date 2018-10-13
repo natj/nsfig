@@ -32,10 +32,10 @@ ax.set_aspect('equal')
 #ax.set_title('Pulsar', size=18)
 
 #image dimensions
-xmin = -14.6
-xmax =  14.6
-ymin = -6.8
-ymax =  7.2
+xmin = -15.0
+xmax =  15.0
+ymin = -7.2
+ymax =  7.4
 
 xlen = xmax-xmin
 ylen = ymax-ymin
@@ -74,21 +74,6 @@ fmtO={'color':'red','linestyle':'solid',}
 # STAR
 
 if True:
-    #Nlines = 10
-    #for sweeps in np.linspace(0.0, 2.0*pi, Nlines):
-    #    ax=nspy.draw_longitude(ax, sweeps,  0.0, pi/2.0, fmt=fmt)
-    #    ax=nspy.draw_longitude(ax, sweeps,  pi/2.0, pi, fmt=fmt) #bottom
-    #
-    #    ax=nspy.draw_longitude(ax, sweeps,  0.0, pi/2.0, fmt=fmtb, backside=True)
-    #    ax=nspy.draw_longitude(ax, sweeps,  pi/2.0, pi,  fmt=fmtb, backside=True) #bottom
-    #
-    #
-    #Nlines = 10
-    #for sweeps in np.linspace(0.0, pi, Nlines):
-    #    ax=nspy.draw_latitude(ax, sweeps, fmt=fmt)
-    #    ax=nspy.draw_latitude(ax, sweeps, backside=True, fmt=fmtb)
-    
-
 
     #coloring
     if True:
@@ -105,19 +90,36 @@ if True:
             fmtS['facecolor'] = cmap(i / float(Ns-1) )
             ax = nspy.draw_spot(ax, spot_phi, spot_theta, rho, fmt=fmtS)
 
+    #draw outline
+    if False:
+        Nlines = 10
+        for sweeps in np.linspace(0.0, 2.0*pi, Nlines):
+            ax=nspy.draw_longitude(ax, sweeps,  0.0, pi/2.0, fmt=fmt)
+            ax=nspy.draw_longitude(ax, sweeps,  pi/2.0, pi, fmt=fmt) #bottom
+        
+            ax=nspy.draw_longitude(ax, sweeps,  0.0, pi/2.0, fmt=fmtb, backside=True)
+            ax=nspy.draw_longitude(ax, sweeps,  pi/2.0, pi,  fmt=fmtb, backside=True) #bottom
+        
+        
+        Nlines = 10
+        for sweeps in np.linspace(0.0, pi, Nlines):
+            ax=nspy.draw_latitude(ax, sweeps, fmt=fmt)
+            ax=nspy.draw_latitude(ax, sweeps, backside=True, fmt=fmtb)
+
 #-----------------------------------------------------
 # DISK
 
 if True:
+    fmtD={'color':'k','linestyle':'solid', 'lw': 0.7, 'alpha':0.6}
+
+
     # equatorial disk
     #slice_thick = 0.8
-    slice_thick = pi/2. - 0.4
+    slice_thick = pi/2. - 0.2
     disk_start= 0.0    + slice_thick
     disk_stop = 2.0*pi - slice_thick
     
-    
-    diskH=0.050
-    
+    diskH=0.300
     inner_disk = 10.0
     outer_disk = 16.0
     
@@ -129,6 +131,7 @@ if True:
                         r_start = inner_disk,
                         r_stop = outer_disk,
                         theta = pi/2-diskH,
+                        fmt=fmtD
                         )
     
     #disk rim
@@ -138,7 +141,21 @@ if True:
                         Nphi = 80,
                         r_start = inner_disk,
                         r_stop = inner_disk+0.1,
-                        theta = pi/2.0+diskH
+                        theta = pi/2.0+diskH,
+                        fmt=fmtD
+                        )
+
+    #interior pattern
+    ax = nspy.draw_disk_interior(
+                        ax,
+                        phi_start= disk_start,
+                        phi_stop = disk_stop,
+                        Nphi = 150,
+                        Nthe = 5,
+                        r_start = inner_disk,
+                        theta_up = pi/2.0-diskH,
+                        theta_dw = pi/2.0+diskH,
+                        fmt=fmtD
                         )
     
     #right bottom
@@ -148,7 +165,8 @@ if True:
                         Nphi = 10,
                         r_start = inner_disk,
                         r_stop = outer_disk,
-                        theta = pi/2.0+diskH
+                        theta = pi/2.0+diskH,
+                        fmt=fmtD
                         )
     
     #left bottom
@@ -158,15 +176,90 @@ if True:
                         Nphi = 10,
                         r_start = inner_disk,
                         r_stop = outer_disk,
-                        theta = pi/2.0+diskH
+                        theta = pi/2.0+diskH,
+                        fmt=fmtD
                         )
+
+# DISK WEDGES
+if False:
+
+    # equatorial disk
+    #RIGHT:
+
+    for i in [1,2]:
+        if i == 1:
+            slice_thick = 0.6
+            disk_start= pi/2.+0.2  + slice_thick
+            disk_stop = pi/2.+0.1 
+        else:
+            slice_thick = 0.6
+            disk_start= -pi/2.+0.2  + slice_thick
+            disk_stop = -pi/2.+0.1 
     
+        diskH=0.250
+        inner_disk = 10.0
+        outer_disk = 16.0
+        
+        ax = nspy.draw_disk(ax,
+                            phi_start= disk_start,
+                            phi_stop = disk_stop,
+                            Nphi = 50,
+                            r_start = inner_disk,
+                            r_stop = outer_disk,
+                            theta = pi/2-diskH,
+                            )
+        
+        #disk rim
+        ax = nspy.draw_disk(ax,
+                            phi_start= disk_start,
+                            phi_stop = disk_stop,
+                            Nphi = 80,
+                            r_start = inner_disk,
+                            r_stop = inner_disk+0.1,
+                            theta = pi/2.0+diskH
+                            )
+
+        #interior pattern
+        ax = nspy.draw_disk_interior(
+                            ax,
+                            phi_start= disk_start,
+                            phi_stop = disk_stop,
+                            Nphi = 40,
+                            Nthe = 20,
+                            r_start = inner_disk,
+                            theta_up = pi/2.0-diskH,
+                            theta_dw = pi/2.0+diskH
+                            )
+        
+        #right bottom
+        ax = nspy.draw_disk(ax,
+                            phi_start= disk_start,
+                            phi_stop = disk_start+0.02,
+                            Nphi = 10,
+                            r_start = inner_disk,
+                            r_stop = outer_disk,
+                            theta = pi/2.0+diskH
+                            )
+        
+        #left bottom
+        ax = nspy.draw_disk(ax,
+                            phi_start= disk_stop,
+                            phi_stop = disk_stop+0.02,
+                            Nphi = 10,
+                            r_start = inner_disk,
+                            r_stop = outer_disk,
+                            theta = pi/2.0+diskH
+                            )
+        
+
+
+
     
 #-----------------------------------------------------
 # Light cylinder
 
 if True:
-    fmtLC={'color':'k','linestyle':'dashed', 'lw': 1.5}
+    fmtLC={'color':'b','linestyle':'dashed', 'lw': 1.5}
 
     H   = 5.5 #cylinder height
     RLC = 4.5 #location of light cylinder   
@@ -219,7 +312,7 @@ if True:
 if True:
     obs_phi=-pi/1.5
 
-    fmta= {'color':'black', 'linestyle':'solid', 'lw':1.5, 'head_width': 0.08, 'head_length': 0.16,}
+    fmta= {'color':'b', 'linestyle':'solid', 'lw':1.5, 'head_width': 0.08, 'head_length': 0.16,}
 
     #draw xyz axis
     #ax = nspy.draw_axis(ax, obs_phi,      pi/2, rfac=1.4)
@@ -232,7 +325,7 @@ if True:
     wsize=0.15
     wheight=-8.0
     
-    ax=nspy.draw_latitude(ax, wsize, fmt=fmt, start=phistart, stop=phistop, rfac=wheight)
+    ax=nspy.draw_latitude(ax, wsize, fmt={'color':'b'}, start=phistart, stop=phistop, rfac=wheight)
     yy1=nspy.y(phistop,wsize)*wheight
     zz1=nspy.z(phistop,wsize)*wheight
     
@@ -250,10 +343,10 @@ if True:
 # B field
 
 if True:
-    fmtB={'color':'k','linestyle':'solid', 'lw': 0.8}
+    fmtB={'color':'k','linestyle':'solid', 'lw': 1.1}
 
-    phiB = pi/2.
-    theinc = pi/7.0 #pulsar inclination
+    phiB = pi/2. + 0.0
+    theinc = pi/15.0 #pulsar inclination
 
     #closed field lines
 
@@ -278,7 +371,7 @@ if True:
 
 
     #separatrix field line
-    fmtRC={'color':'r','linestyle':'dashed', 'lw': 0.8}
+    fmtRC={'color':'r','linestyle':'dashed', 'lw': 1.1}
     ax = nspy.draw_dipole_field_line(ax, RLC,phi=phiB, tinc=theinc, fmt=fmtRC)
 
     #reconnecting field lines
@@ -295,6 +388,7 @@ if True:
                 fmt=fmtRC, )
 
 
+
 plt.subplots_adjust(left=0.0, bottom=0.0, right=0.99, top=0.99, wspace=0.0, hspace=0.0)
+savefig('fig_pulsar.png')
 savefig('fig_pulsar.pdf')
-#savefig('fig_pulsar.png', bbox_inches='tight')
