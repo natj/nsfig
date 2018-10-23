@@ -335,6 +335,7 @@ def draw_wave(ax,
     return ax
 
 
+# draw normal flat accretion disk
 def draw_disk(ax,
               phi_start = 0.0,
               phi_stop = 2*pi,
@@ -373,6 +374,57 @@ def draw_disk(ax,
     return ax
 
 
+# draw accreting pulsar disk with accretion fingers
+def draw_acc_disk(ax,
+              phi_start = 0.0,
+              phi_stop = 2*pi,
+              phi_finger1 = pi/2., #location of first acc finger
+              Nphi = 50,
+              r_start = 1.2,
+              r_stop = 8.0,
+              r_finger = 0.8, #radial extent of first acc finger
+              theta = pi/2,
+              fmt={'color':'k','linestyle':'solid', 'alpha':0.5}
+              ):
+
+
+    for phi in np.linspace(phi_start, phi_stop, Nphi):
+        phi += 0.02
+        xx = []
+        yy = []
+
+        modfac = finger_shape(phi, phi_finger1)
+
+        r_startf = modfac*r_finger + (1.0 - modfac)*r_start
+        for rfac in np.linspace(r_startf, r_stop, 200):
+            thetaI = theta #+ 0.03*sin(8.0*rfac)
+            phiI = phi #+ 0.05*sin(8.0*rfac)
+
+            xx.append(y(phiI,thetaI)*rfac)
+            yy.append(z(phiI,thetaI)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+
+    for rfac in np.linspace(r_start, r_stop, 5):
+        thetaI = theta #+ 0.03*sin(8.0*rfac)
+        xx = []
+        yy = []
+        for phi in np.linspace(phi_start, phi_stop, 200):
+            phi += 0.02
+            phiI = phi #+ 0.05*sin(8.0*rfac)
+            xx.append(y(phiI,thetaI)*rfac)
+            yy.append(z(phiI,thetaI)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+    return ax
+
+
+
+
+
+
+
+
 def draw_disk_interior(
               ax,
               phi_start = 0.0,
@@ -406,6 +458,55 @@ def draw_disk_interior(
 
     return ax
 
+
+def finger_shape(phi, phi_finger):
+    modfac = 1.0 - 0.2*((phi - phi_finger)/0.3)**2.0
+    if modfac < 0.0:
+        modfac = 0.0
+
+    return modfac
+
+
+# draw interior of accreting pulsar disk with fingers
+def draw_acc_disk_interior(
+              ax,
+              phi_start = 0.0,
+              phi_stop = 2*pi,
+              phi_finger1 = pi/2.,     #location of first acc finger
+              phi_finger2 = 3.0*pi/2., #location of second acc finger
+              Nphi = 10,
+              r_start = 1.2,
+              r_finger = 0.8,
+              theta_up = pi/2-0.1,
+              theta_dw = pi/2+0.1,
+              fmt={'color':'k','linestyle':'solid', 'alpha':0.5}
+              ):
+
+    dthe = np.abs(theta_up - theta_dw)
+    for phi in np.linspace(phi_start, phi_stop, Nphi):
+        xx = []
+        yy = []
+
+        if phi < pi:
+            modfac = finger_shape(phi, phi_finger1)
+        else:
+            modfac = finger_shape(phi, phi_finger2)
+
+        rfac = modfac*r_finger + (1.0 - modfac)*r_start
+
+        for the in np.linspace(theta_dw, theta_up, 20):
+
+            if phi < pi:
+                modfac_t = ((the - theta_up)/dthe)**2.0
+            else:
+                modfac_t = ((the - theta_dw)/dthe)**2.0
+
+            rfacm = rfac*modfac_t + (1.0-modfac_t)*r_start
+            xx.append(y(phi,the)*rfacm)
+            yy.append(z(phi,the)*rfacm)
+        ax.plot(xx,yy,**fmt)
+
+    return ax
 
 
 def draw_flow_line(ax,

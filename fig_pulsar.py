@@ -69,6 +69,10 @@ fmtb = {'color':'k','linestyle':'dotted', 'lw': 0.8}
 fmtO={'color':'red','linestyle':'solid',}
 
 
+flag_highm = False
+flag_lowm = True
+
+
 
 #-----------------------------------------------------
 # STAR
@@ -109,7 +113,7 @@ if True:
 #-----------------------------------------------------
 # DISK
 
-if True:
+if flag_highm and True:
     fmtD={'color':'k','linestyle':'solid', 'lw': 0.7, 'alpha':0.6}
 
 
@@ -179,6 +183,88 @@ if True:
                         theta = pi/2.0+diskH,
                         fmt=fmtD
                         )
+
+# ACCRETING DISK
+if flag_lowm and True:
+    fmtD={'color':'k','linestyle':'solid', 'lw': 0.7, 'alpha':0.6}
+
+
+    # equatorial disk
+    #slice_thick = 0.8
+    slice_thick = pi/2. - 0.2
+    disk_start= 0.0    + slice_thick
+    disk_stop = 2.0*pi - slice_thick
+    
+    diskH=0.300
+    inner_disk = 4.5
+    outer_disk = 16.0
+    
+
+    r_finger =  0.5*inner_disk
+    
+    ax = nspy.draw_acc_disk(ax,
+                        phi_start= disk_start,
+                        phi_stop = disk_stop,
+                        phi_finger1 = 3.0*pi/2.,
+                        Nphi = 200,
+                        r_start = inner_disk,
+                        r_stop = outer_disk,
+                        r_finger = r_finger,
+                        theta = pi/2-diskH,
+                        fmt=fmtD
+                        )
+    
+    #disk rim
+    ax = nspy.draw_acc_disk(ax,
+                        phi_start= disk_start,
+                        phi_stop = disk_stop,
+                        phi_finger1 = pi/2.,
+                        Nphi = 80,
+                        r_start = inner_disk,
+                        r_stop = inner_disk+0.1,
+                        r_finger = r_finger,
+                        theta = pi/2.0+diskH,
+                        fmt=fmtD
+                        )
+
+    #interior pattern
+    ax = nspy.draw_acc_disk_interior(
+                        ax,
+                        phi_start= disk_start,
+                        phi_stop = disk_stop,
+                        phi_finger1 = pi/2.,
+                        phi_finger2 = 3.0*pi/2.,
+                        Nphi = 80,
+                        r_start = inner_disk,
+                        r_finger = r_finger,
+                        theta_up = pi/2.0-diskH,
+                        theta_dw = pi/2.0+diskH,
+                        fmt=fmtD
+                        )
+    
+    #right bottom
+    ax = nspy.draw_disk(ax,
+                        phi_start= disk_start,
+                        phi_stop = disk_start+0.02,
+                        Nphi = 10,
+                        r_start = inner_disk,
+                        r_stop = outer_disk,
+                        theta = pi/2.0+diskH,
+                        fmt=fmtD
+                        )
+     
+    ##left bottom
+    ax = nspy.draw_disk(ax,
+                        phi_start= disk_stop,
+                        phi_stop = disk_stop+0.02,
+                        Nphi = 10,
+                        r_start = inner_disk,
+                        r_stop = outer_disk,
+                        theta = pi/2.0+diskH,
+                        fmt=fmtD
+                        )
+
+
 
 # DISK WEDGES
 if False:
@@ -351,44 +437,59 @@ if True:
     #closed field lines
 
     req1 = 1.5 #first field line (where it crosses equator)
-    req2 = 0.9*RLC #last field line 
+    req2 = 0.9*RLC if flag_highm else 0.95*RLC #last field line 
     for r in np.linspace(req1, req2, 3):
         ax = nspy.draw_dipole_field_line(ax,r,phi=phiB, tinc=theinc, fmt=fmtB)
 
 
     # open field lines
-    req1 = 1.2*RLC
-    req2 = 5.0*RLC
-    #for r in np.linspace(req1, req2, 3):
-    for r in [1.8*RLC, 3.0*RLC, 30.0*RLC]:
-        ax = nspy.draw_open_field_line(
-                ax,
-                r,
-                RLC, 
-                phi=phiB, 
-                tinc=theinc, 
-                fmt=fmtB)
+    if flag_highm:
+        req1 = 1.2*RLC
+        req2 = 5.0*RLC
+        #for r in np.linspace(req1, req2, 3):
+        for r in [1.8*RLC, 3.0*RLC, 30.0*RLC]:
+            ax = nspy.draw_open_field_line(
+                    ax,
+                    r,
+                    RLC, 
+                    phi=phiB, 
+                    tinc=theinc, 
+                    fmt=fmtB)
 
 
-    #separatrix field line
-    fmtRC={'color':'r','linestyle':'dashed', 'lw': 1.1}
-    ax = nspy.draw_dipole_field_line(ax, RLC,phi=phiB, tinc=theinc, fmt=fmtRC)
+    if flag_highm:
+        #separatrix field line
+        fmtRC={'color':'r','linestyle':'dashed', 'lw': 1.1}
+        ax = nspy.draw_dipole_field_line(ax, RLC,phi=phiB, tinc=theinc, fmt=fmtRC)
 
-    #reconnecting field lines
-    req1 = RLC + 0.1 #first field line (where it crosses equator)
-    req2 = 8.0       #last field line 
-    for r in np.linspace(req1, req2, 1):
-        ax = nspy.draw_reconnecting_field_line(
-                ax,
-                r,
-                RLC, 
-                phi=phiB, 
-                tinc=theinc, 
-                sheet_len = 2.2,
-                fmt=fmtRC, )
+        #reconnecting field lines
+        req1 = RLC + 0.1 #first field line (where it crosses equator)
+        req2 = 8.0       #last field line 
+        for r in np.linspace(req1, req2, 1):
+            ax = nspy.draw_reconnecting_field_line(
+                    ax,
+                    r,
+                    RLC, 
+                    phi=phiB, 
+                    tinc=theinc, 
+                    sheet_len = 2.2,
+                    fmt=fmtRC, )
 
+
+
+if flag_highm:
+    fig.text(0.05, 0.40, "High\nmode", size=15)
+
+if flag_lowm:
+    fig.text(0.05, 0.40, "Low\nmode", size=15)
 
 
 plt.subplots_adjust(left=0.0, bottom=0.0, right=0.99, top=0.99, wspace=0.0, hspace=0.0)
-savefig('fig_pulsar.png')
-savefig('fig_pulsar.pdf')
+
+if flag_highm:
+    savefig('fig_pulsar_high.png')
+    savefig('fig_pulsar_high.pdf')
+
+if flag_lowm:
+    savefig('fig_pulsar_low.png')
+    savefig('fig_pulsar_low.pdf')
