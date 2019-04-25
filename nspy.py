@@ -419,7 +419,71 @@ def draw_acc_disk(ax,
     return ax
 
 
+def flare_shape_the(phi, phi_flare):
+    modfac = 0.8*(np.abs(phi - phi_flare)/0.4)**2.0
+    if modfac < 0.0:
+        modfac = 0.0
+    if modfac > 1.0:
+        modfac = 1.0
+    return modfac
 
+def flare_shape_rad(rfac, r_start, r_stop):
+    modfac_r = (rfac-r_start)/(r_stop-r_start)**3.0
+    return modfac_r
+
+
+# draw normal flat accretion disk
+def draw_flaring_disk(ax,
+              phi_start = 0.0,
+              phi_stop = 2*pi,
+              phi_flare = 0.0,
+              Nphi = 50,
+              r_start = 1.2,
+              r_stop = 8.0,
+              theta = pi/2,
+              fmt={'color':'k','linestyle':'solid', 'alpha':0.5}
+              ):
+
+    theta_flare = theta - 0.4
+
+    dphi = np.abs(phi_stop - phi_start)
+    for phi in np.linspace(phi_start, phi_stop, Nphi):
+        phi += 0.02
+        xx = []
+        yy = []
+
+        modfac = flare_shape_the(phi, phi_flare)
+        thetaI = theta_flare*(1.0-modfac) + modfac*theta
+
+        for rfac in np.linspace(r_start, r_stop, 200):
+
+            modfac_r = flare_shape_rad(rfac, r_start, r_stop)
+            thetaI = thetaI*(1.0-modfac_r) + modfac_r*theta
+
+            xx.append(y(phi,thetaI)*rfac)
+            yy.append(z(phi,thetaI)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+
+    for rfac in np.linspace(r_start, r_stop, 5):
+        xx = []
+        yy = []
+
+        thetaI = theta #+ 0.03*sin(8.0*rfac)
+        modfac_r = flare_shape_rad(rfac, r_start, r_stop)
+        thetaI = thetaI*(1.0-modfac_r) + modfac_r*theta
+        for phi in np.linspace(phi_start, phi_stop, 200):
+            phi += 0.02
+            phiI = phi #+ 0.05*sin(8.0*rfac)
+
+            #modfac = flare_shape_the(phi, phi_flare)
+            #thetaI = theta_flare*(1.0-modfac) + modfac*thetaI
+
+            xx.append(y(phiI,thetaI)*rfac)
+            yy.append(z(phiI,thetaI)*rfac)
+        ax.plot(xx,yy,**fmt)
+
+    return ax
 
 
 
@@ -971,6 +1035,74 @@ def draw_open_field_line(
 
     return ax
 
+# https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
+def rotation_matrix(axis, theta):
+    """
+    Return the rotation matrix associated with counterclockwise rotation about
+    the given axis by theta radians.
+    """
+    axis = np.asarray(axis)
+    axis = axis / math.sqrt(np.dot(axis, axis))
+    a = math.cos(theta / 2.0)
+    b, c, d = -axis * math.sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                     [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                     [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
+
+def draw_tilted_plane(
+        ax,
+        phi_start = 0.0,
+        phi_stop = 2*pi,
+        rmin = 1.0,
+        rmax = 1.0,
+        tinc = 0.0,
+        phic = 0.0,
+        fmt={'color':'b','linestyle':'solid',},
+        ):
+
+    xxi = y(phic, pi/2.)*rmin
+    yyi = z(phic, pi/2.)*rmin
+    zzi = x(phic, pi/2.)*rmin
+    rotaxis = [xxi, yyi, zzi]
+    rotmat = rotation_matrix(rotaxis, tinc)
+
+    #wheels
+    theta = pi/2.
+    for rfac in np.linspace(rmin, rmax, 5):
+        xx = []
+        yy = []
+        for phi in np.linspace(phi_start,phi_stop, 200):
+            xxi = y(phi,theta)*rfac
+            yyi = z(phi,theta)*rfac
+            zzi = x(phi,theta)*rfac
+
+            rotp = np.dot(rotmat, [xxi,yyi,zzi])
+            xx.append(rotp[0])
+            yy.append(rotp[1])
+        if plot:
+            ax.plot(xx, yy, **fmt)
+
+
+    #spokes
+    for phi in np.linspace(phi_start,phi_stop, 40):
+        xx = []
+        yy = []
+        for rfac in np.linspace(rmin, rmax, 20):
+            xxi = y(phi,theta)*rfac
+            yyi = z(phi,theta)*rfac
+            zzi = x(phi,theta)*rfac
+
+            rotp = np.dot(rotmat, [xxi,yyi,zzi])
+            xx.append(rotp[0])
+            yy.append(rotp[1])
+        if plot:
+            ax.plot(xx, yy, **fmt)
+
+
+
+    return ax
 
 

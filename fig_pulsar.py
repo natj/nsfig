@@ -69,8 +69,8 @@ fmtb = {'color':'k','linestyle':'dotted', 'lw': 0.8}
 fmtO={'color':'red','linestyle':'solid',}
 
 
-flag_highm = False
-flag_lowm = True
+flag_highm = True
+flag_lowm = False
 
 
 
@@ -123,7 +123,7 @@ if flag_highm and True:
     disk_start= 0.0    + slice_thick
     disk_stop = 2.0*pi - slice_thick
     
-    diskH=0.300
+    diskH=0.10
     inner_disk = 10.0
     outer_disk = 16.0
     
@@ -195,7 +195,7 @@ if flag_lowm and True:
     disk_start= 0.0    + slice_thick
     disk_stop = 2.0*pi - slice_thick
     
-    diskH=0.300
+    diskH=0.100
     inner_disk = 4.5
     outer_disk = 16.0
     
@@ -424,6 +424,41 @@ if True:
                 **fmta
                 ))
     
+#-----------------------------------------------------
+# CURRENT SHEET PLANE
+if True:
+    fmtB={'color':'r','linestyle':'dotted', 'lw': 1.1, 'alpha':0.5}
+
+    phiB = pi/2. + 0.0
+    theinc = pi/10.0 #pulsar inclination
+
+    nspy.draw_tilted_plane(
+            ax,
+            rmin=1.1*RLC,
+            rmax=10.0,
+            tinc=pi/10.0,
+            phic=0.0,
+            fmt=fmtB,
+            )
+
+    #emiting region
+    fmtB2={'color':'k','linestyle':'dashed', 'lw': 2.5, 'alpha':0.5}
+    disk_start= 0.0 + pi/2. + 1.2
+    #disk_stop = pi - 0.3
+    disk_stop = pi + 0.32
+
+    nspy.draw_tilted_plane(
+            ax,
+            phi_start = disk_start,
+            phi_stop = disk_stop,
+            rmin=10.0,
+            rmax=10.1,
+            tinc=pi/10.0,
+            phic= 2.0*pi,
+            fmt=fmtB2,
+            )
+
+
 
 #-----------------------------------------------------
 # B field
@@ -432,7 +467,7 @@ if True:
     fmtB={'color':'k','linestyle':'solid', 'lw': 1.1}
 
     phiB = pi/2. + 0.0
-    theinc = pi/15.0 #pulsar inclination
+    theinc = pi/10.0 #pulsar inclination
 
     #closed field lines
 
@@ -478,10 +513,10 @@ if True:
 
 
 if flag_highm:
-    fig.text(0.05, 0.40, "High\nmode", size=15)
+    fig.text(0.05, 0.90, "High mode", size=15)
 
 if flag_lowm:
-    fig.text(0.05, 0.40, "Low\nmode", size=15)
+    fig.text(0.05, 0.90, "Low mode", size=15)
 
 
 plt.subplots_adjust(left=0.0, bottom=0.0, right=0.99, top=0.99, wspace=0.0, hspace=0.0)
